@@ -1,0 +1,28 @@
+import scapy.all as scapy
+from scapy.layers import http
+
+def sniffing(interface):
+    scapy.sniff(iface=interface, store=False, prn=processpacket)
+
+def processpacket(packet):
+    #print(packet)
+    #print(packet.show())
+    if packet.haslayer(http.HTTPRequest):
+       # print(packet)
+        #print(packet[http.HTTPRequest].Host)
+        http_layer = packet.getlayer(http.HTTPRequest)
+        method = http_layer.Method.decode()
+        path = http_layer.Path.decode()
+        host = http_layer.Host.decode()
+
+        #this prints the http request
+        print(f"HTTP {method} request to {host}{path}")
+
+        # if the required information is the userinfo the below code would help
+        if method == "POST" and path == "/userinfo.php":
+            print(f"POST Data:")
+            if packet.haslayer(scapy.Raw):
+                raw_data = packet[scapy.Raw].load.decode()
+                print(raw_data)
+
+sniffing("Wi-Fi")
